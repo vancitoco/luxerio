@@ -1,0 +1,14 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" fill="none">
+  <!-- Outer diamond -->
+  <polygon points="50,4 96,50 50,96 4,50" stroke="#c9a227" stroke-width="0.9"/>
+  <!-- Inner diamond -->
+  <polygon points="50,12 88,50 50,88 12,50" stroke="#c9a227" stroke-width="0.9"/>
+  <!-- L — vertical -->
+  <line x1="37" y1="30" x2="37" y2="69" stroke="#c9a227" stroke-width="2" stroke-linecap="square"/>
+  <!-- L — top serif -->
+  <line x1="29" y1="30" x2="46" y2="30" stroke="#c9a227" stroke-width="2" stroke-linecap="square"/>
+  <!-- L — baseline -->
+  <line x1="37" y1="69" x2="64" y2="69" stroke="#c9a227" stroke-width="2" stroke-linecap="square"/>
+  <!-- L — right tick -->
+  <line x1="64" y1="69" x2="64" y2="61" stroke="#c9a227" stroke-width="2" stroke-linecap="square"/>
+</svg>

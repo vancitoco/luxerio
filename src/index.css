@@ -1,0 +1,43 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Token system.
+  - Brand constants (acid green, logo gold) NEVER change across themes.
+  - Semantic tokens flip between dark/light via the `.dark` class on <html>.
+*/
+:root {
+  /* Brand constants — confirm exact hex from Figma variables on next pass. */
+  --brand-acid: #c6f500; /* neon green strips / active / price */
+  --brand-gold: #c9a227; /* logo mark accent only */
+
+  /* Light mode (improvised — off-white + cool gray, keep acid + black). */
+  --bg-base: #f4f3ef;
+  --bg-surface: #ffffff;
+  --bg-elevated: #ecece8;
+  --text-primary: #0a0a0a;
+  --text-secondary: #5a5a5a;
+  --border-hairline: rgba(0, 0, 0, 0.1);
+}
+
+.dark {
+  /* Dark mode (from NEO-INDUSTRIAL frames). */
+  --bg-base: #0a0a0a;
+  --bg-surface: #141414;
+  --bg-elevated: #1c1c1c;
+  --text-primary: #f5f5f5;
+  --text-secondary: #8a8a8a;
+  --border-hairline: rgba(255, 255, 255, 0.08);
+}
+
+html {
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+  font-family: 'Inter', system-ui, sans-serif;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
