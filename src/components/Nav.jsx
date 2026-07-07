@@ -32,9 +32,9 @@ export default function Nav() {
         >
           {/* Brand. */}
           <Link to="/" onClick={close} className="flex items-center gap-3">
-            <img src="/brand/luxerio-mark.svg" alt="" className="h-9 w-9" aria-hidden="true" />
+            <img src="/brand/vancito-logo.png" alt="" className="h-9 w-9 object-contain" aria-hidden="true" />
             <span className="font-display text-xl font-extrabold uppercase tracking-tight text-primary">
-              Luxerio
+              Vancito.co
             </span>
           </Link>
 

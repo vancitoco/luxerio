@@ -1,61 +1,84 @@
 import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useLocation } from 'react-router-dom';
+import { useQueryClient } from '@tanstack/react-query';
 import FilterRail from '../components/FilterRail.jsx';
 import SortDropdown from '../components/SortDropdown.jsx';
 import ProductGrid from '../components/ProductGrid.jsx';
-import { useProducts } from '../lib/shopify/hooks.js';
-import { buildShopifyQuery, getSortConfig } from '../lib/shopify/filters.js';
+import { useProducts, prefetchProducts, useSearchProducts, prefetchSearchProducts } from '../lib/shopify/hooks.js';
+import { buildShopifyQuery, getSortConfig, buildSearchParams, getSearchSortKey } from '../lib/shopify/filters.js';
 import { trackEvent, EVENTS } from '../lib/analytics/ga4.js';
 
-const PAGE_SIZE = 12;
+const PAGE_SIZE = 24;
 
 export default function ShopAll() {
   const [searchParams, setSearchParams] = useSearchParams();
+  const location = useLocation();
+  const queryClient = useQueryClient();
   const [filterSheetOpen, setFilterSheetOpen] = useState(false);
 
-  const urlCategory = searchParams.get('category') ?? '';
-  const urlSizes    = searchParams.get('sizes')?.split(',').filter(Boolean) ?? [];
-  const urlSort     = searchParams.get('sort') ?? 'newest';
-  const urlQuery    = searchParams.get('q') ?? '';
+  const urlCategories = searchParams.get('categories')?.split(',').filter(Boolean) ?? [];
+  const urlSizes      = searchParams.get('sizes')?.split(',').filter(Boolean) ?? [];
+  const urlSort       = searchParams.get('sort') ?? 'newest';
+  const urlQuery      = searchParams.get('q') ?? '';
 
-  const [pendingCategory, setPendingCategory] = useState(urlCategory);
-  const [pendingSizes, setPendingSizes]         = useState(urlSizes);
+  const [pendingCategories, setPendingCategories] = useState(urlCategories);
+  const [pendingSizes, setPendingSizes]           = useState(urlSizes);
 
   useEffect(() => {
-    setPendingCategory(urlCategory);
+    setPendingCategories(urlCategories);
     setPendingSizes(urlSizes);
-  }, [urlCategory, urlSizes.join(','), urlQuery]);
+  }, [location.key]); // reset pending state on every navigation push (not on in-page replace)
 
-  // Lock body scroll when filter sheet is open on mobile.
   useEffect(() => {
     document.body.style.overflow = filterSheetOpen ? 'hidden' : '';
     return () => { document.body.style.overflow = ''; };
   }, [filterSheetOpen]);
 
-  const sortConfig = getSortConfig(urlSort);
-  const shopifyQuery = buildShopifyQuery({ category: urlCategory, sizes: urlSizes, searchQuery: urlQuery });
+  const sortConfig    = getSortConfig(urlSort);
+  const shopifyQuery  = buildShopifyQuery({ categories: urlCategories, searchQuery: urlQuery });
+  const useSizeFilter = urlSizes.length > 0;
+  const sizeSearchParams = useSizeFilter ? buildSearchParams(urlCategories, urlSizes, urlQuery) : null;
+  const searchSortKey    = getSearchSortKey(urlSort);
 
-  const [cursor, setCursor]     = useState(null);
-  const [allProducts, setAll]   = useState([]);
+  const [cursor, setCursor]           = useState(null);
+  const [allProducts, setAll]         = useState([]);
   const [isFetchingMore, setFetchMore] = useState(false);
 
-  const { data, isLoading, isFetching } = useProducts({
+  // Root products query (no size filter active)
+  const { data: productsData, isLoading: prodLoading, isFetching: prodFetching } = useProducts({
     first:   PAGE_SIZE,
     sortKey: sortConfig.sortKey,
     reverse: sortConfig.reverse,
     after:   cursor,
     query:   shopifyQuery,
+    enabled: !useSizeFilter,
   });
+
+  // Search query (size filter active — search endpoint supports productFilters)
+  const { data: searchData, isLoading: searchLoading, isFetching: searchFetching } = useSearchProducts({
+    query:          sizeSearchParams?.query,
+    first:          PAGE_SIZE,
+    sortKey:        searchSortKey,
+    reverse:        sortConfig.reverse,
+    after:          cursor,
+    productFilters: sizeSearchParams?.productFilters,
+    enabled:        useSizeFilter,
+  });
+
+  const data       = useSizeFilter ? searchData    : productsData;
+  const isLoading  = useSizeFilter ? searchLoading : prodLoading;
+  const isFetching = useSizeFilter ? searchFetching : prodFetching;
+
 
   useEffect(() => {
     setCursor(null);
     setAll([]);
     setFetchMore(false);
-  }, [shopifyQuery, urlSort]);
+  }, [shopifyQuery, urlSort, urlSizes.join(',')]);
 
   useEffect(() => {
     if (!data?.edges) return;
-    const nodes = data.edges.map((e) => e.node);
+    const nodes = data.edges.map((e) => e.node).filter(Boolean);
     setAll((prev) => {
       if (!cursor) return nodes;
       const ids = new Set(prev.map((p) => p.id));
@@ -63,6 +86,22 @@ export default function ShopAll() {
     });
     setFetchMore(false);
   }, [data]);
+
+  useEffect(() => {
+    if (!data?.pageInfo?.hasNextPage || !data?.pageInfo?.endCursor) return;
+    if (useSizeFilter) {
+      prefetchSearchProducts(queryClient, {
+        query: sizeSearchParams?.query, first: PAGE_SIZE, sortKey: searchSortKey,
+        reverse: sortConfig.reverse, after: data.pageInfo.endCursor,
+        productFilters: sizeSearchParams?.productFilters,
+      });
+    } else {
+      prefetchProducts(queryClient, {
+        first: PAGE_SIZE, sortKey: sortConfig.sortKey, reverse: sortConfig.reverse,
+        after: data.pageInfo.endCursor, query: shopifyQuery,
+      });
+    }
+  }, [data?.pageInfo?.endCursor]);
 
   const handleLoadMore = useCallback(() => {
     if (!data?.pageInfo?.hasNextPage) return;
@@ -72,11 +111,12 @@ export default function ShopAll() {
 
   const handleApply = () => {
     const params = {};
-    if (pendingCategory) params.category = pendingCategory;
+    if (pendingCategories.length) params.categories = pendingCategories.join(',');
     if (pendingSizes.length) params.sizes = pendingSizes.join(',');
     if (urlSort !== 'newest') params.sort = urlSort;
+    if (urlQuery) params.q = urlQuery;
     setSearchParams(params, { replace: true });
-    trackEvent(EVENTS.FILTER_APPLY, { category: pendingCategory, sizes: pendingSizes.join(',') });
+    trackEvent(EVENTS.FILTER_APPLY, { categories: pendingCategories.join(','), sizes: pendingSizes.join(',') });
   };
 
   const handleSort = (val) => {
@@ -87,28 +127,28 @@ export default function ShopAll() {
     trackEvent(EVENTS.SORT_CHANGE, { sort_value: val });
   };
 
-  const activeFilterCount = [urlCategory && urlCategory !== '', ...urlSizes].filter(Boolean).length;
-
-  const totalShown = allProducts.length;
+  const displayProducts = allProducts;
+  const activeFilterCount = urlCategories.length + urlSizes.length;
+  const totalShown  = displayProducts.length;
   const hasNextPage = data?.pageInfo?.hasNextPage ?? false;
 
   return (
     <div className="mx-auto max-w-[1280px] px-6 py-12 lg:px-16">
-      {/* Page header. */}
+      {/* Page header */}
       <div className="mb-8 border-b border-hairline pb-6">
         <h1 className="font-display text-4xl font-black uppercase tracking-tight text-primary md:text-5xl">
           {urlQuery ? `"${urlQuery}"` : 'Shop'}
         </h1>
         <p className="mt-2 text-xs uppercase tracking-wider text-secondary">
           {isLoading
-            ? 'Loading…'
+            ? 'Loading...'
             : totalShown > 0
             ? `Showing ${totalShown} technical garment${totalShown !== 1 ? 's' : ''}${hasNextPage ? '+' : ''}.`
             : 'No garments found.'}
         </p>
       </div>
 
-      {/* Mobile toolbar: filter button + sort. */}
+      {/* Mobile toolbar */}
       <div className="mb-6 flex items-center justify-between md:hidden">
         <button
           type="button"
@@ -130,26 +170,25 @@ export default function ShopAll() {
         <SortDropdown value={urlSort} onChange={handleSort} />
       </div>
 
-      {/* Desktop sort bar. */}
+      {/* Desktop sort bar */}
       <div className="mb-6 hidden justify-end md:flex">
         <SortDropdown value={urlSort} onChange={handleSort} />
       </div>
 
-      {/* Layout: rail (desktop) + grid. */}
+      {/* Layout */}
       <div className="flex flex-col gap-6 md:flex-row md:items-start">
-        {/* Desktop filter rail. */}
         <div className="hidden md:block">
           <FilterRail
-            category={pendingCategory}
+            categories={pendingCategories}
             sizes={pendingSizes}
-            onCategoryChange={setPendingCategory}
+            onCategoriesChange={setPendingCategories}
             onSizesChange={setPendingSizes}
             onApply={handleApply}
           />
         </div>
 
         <ProductGrid
-          products={allProducts}
+          products={displayProducts}
           isLoading={isLoading && !isFetchingMore}
           isFetchingMore={isFetchingMore || (isFetching && !!cursor)}
           hasNextPage={hasNextPage}
@@ -157,7 +196,7 @@ export default function ShopAll() {
         />
       </div>
 
-      {/* Mobile filter bottom sheet. */}
+      {/* Mobile filter sheet backdrop */}
       <div
         aria-hidden="true"
         onClick={() => setFilterSheetOpen(false)}
@@ -165,6 +204,7 @@ export default function ShopAll() {
           filterSheetOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
       />
+      {/* Mobile filter sheet */}
       <div
         id="filter-sheet"
         role="dialog"
@@ -175,9 +215,9 @@ export default function ShopAll() {
         }`}
       >
         <FilterRail
-          category={pendingCategory}
+          categories={pendingCategories}
           sizes={pendingSizes}
-          onCategoryChange={setPendingCategory}
+          onCategoriesChange={setPendingCategories}
           onSizesChange={setPendingSizes}
           onApply={handleApply}
           onClose={() => setFilterSheetOpen(false)}

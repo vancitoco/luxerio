@@ -17,7 +17,7 @@ export default {
         hairline: 'var(--border-hairline)',
       },
       fontFamily: {
-        // Live web type for "Luxerio" + nav. No text image assets.
+        // Live web type for "Vancito.co" + nav. No text image assets.
         display: ['"Archivo"', 'system-ui', 'sans-serif'],
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },

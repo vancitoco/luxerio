@@ -16,7 +16,7 @@ BASE_DELAY = 0.5
 MAX_DELAY = 2.0
 MAX_RETRIES = 3
 CHECKPOINT_SAVE_INTERVAL = 50   # save checkpoint every N products
-VENDOR = "Luxerio"
+VENDOR = "Vancito.co"
 BASE_DOMAIN = "https://shoesmaster.in"
 ALLCATEGORY_URL = f"{BASE_DOMAIN}/allcategory.html"
 FALLBACK_PRICE = "3499"
@@ -97,7 +97,7 @@ TAXONOMY_MAP = {
     "perfume combo":            "Health & Beauty > Personal Care > Cosmetics > Perfumes & Colognes",
     "perfume":                  "Health & Beauty > Personal Care > Cosmetics > Perfumes & Colognes",
     # Electronics
-    "i watch and airpods":      "Electronics > Wearable Technology",
+    "i watch and airpods":      "Apparel & Accessories > Jewelry > Watches",  # overridden per-product in _resolve_taxonomy
     # Kids
     "junior vibes":             "Apparel & Accessories > Clothing > Baby & Children's Clothing",
 }
@@ -625,6 +625,20 @@ def _save_checkpoint(checkpoint, path: Path):
 #           CSV BUILDER
 # ==========================================
 
+_EARBUDS_KEYWORDS = ['airpod', 'bud', 'earbud', 'earphone', 'tws', 'in-ear']
+_WATCH_TAXONOMY   = "Apparel & Accessories > Jewelry > Smart Watches"
+_EARBUD_TAXONOMY  = "Electronics > Audio > Audio Components > Headphones & Headsets > Headphones > In-Ear Headphones"
+
+def _resolve_taxonomy(item: dict) -> str:
+    """For mixed categories (e.g. I Watch and Airpods), split by title keywords."""
+    if item['tags'].lower() == 'i watch and airpods':
+        title_lower = item['title'].lower()
+        if any(kw in title_lower for kw in _EARBUDS_KEYWORDS):
+            return _EARBUD_TAXONOMY
+        return _WATCH_TAXONOMY
+    return item['taxonomy']
+
+
 def build_shopify_csvs(scraped_registry: dict, category_slug: str):
     output_dir = Path("output")
     output_dir.mkdir(exist_ok=True)
@@ -661,7 +675,7 @@ def build_shopify_csvs(scraped_registry: dict, category_slug: str):
                 if i == 0:
                     row['Title'] = item['title']
                     row['Description'] = item['description']
-                    row['Product category'] = item['taxonomy']
+                    row['Product category'] = _resolve_taxonomy(item)
                     row['Tags'] = item['tags']
                     row['Status'] = 'Active'
                     row['Published on online store'] = True
@@ -693,7 +707,7 @@ def build_shopify_csvs(scraped_registry: dict, category_slug: str):
 # ==========================================
 
 def main():
-    parser = argparse.ArgumentParser(description="Luxerio product scraper for Shopify CSV import")
+    parser = argparse.ArgumentParser(description="Vancito.co product scraper for Shopify CSV import")
     parser.add_argument('--category', type=str, help='Exact category name to scrape (case-insensitive)')
     parser.add_argument('--fresh', action='store_true', help='Ignore existing checkpoint and start fresh')
     parser.add_argument('--rediscover', action='store_true', help='Re-run URL discovery but keep already-scraped products')

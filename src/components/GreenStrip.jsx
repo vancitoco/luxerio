@@ -23,7 +23,7 @@ export default function GreenStrip({ items = DEFAULT_ITEMS }) {
 
 const DEFAULT_ITEMS = [
   'Limited Edition',
-  'Free Shipping Over $200',
+  'Premium Quality Guaranteed',
   'New Drop Live',
   'Technical Apparel',
   'Engineered For Urban Tactics',

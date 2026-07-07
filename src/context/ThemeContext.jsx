@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, useCallback } from 'react';
 
 const ThemeContext = createContext(null);
-const STORAGE_KEY = 'luxerio-theme';
+const STORAGE_KEY = 'vancito-theme';
 
 function getInitialTheme() {
   if (typeof window === 'undefined') return 'dark';

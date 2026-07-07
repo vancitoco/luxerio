@@ -11,7 +11,7 @@ export default class ErrorBoundary extends Component {
   }
 
   componentDidCatch(error, info) {
-    console.error('[Luxerio] Unhandled render error:', error, info.componentStack);
+    console.error('[Vancito] Unhandled render error:', error, info.componentStack);
   }
 
   render() {

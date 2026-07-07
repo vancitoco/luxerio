@@ -35,9 +35,39 @@ html {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Image fade-in — .img-fade starts transparent, .img-loaded (set on load) reveals it.
+   Transition includes transform so the card hover zoom keeps working. */
+.img-fade {
+  opacity: 0;
+  transition: opacity 0.4s ease, transform 0.7s ease;
+}
+.img-fade.img-loaded {
+  opacity: 1;
+}
+
 body {
   background-color: var(--bg-base);
   color: var(--text-primary);
   font-family: 'Inter', system-ui, sans-serif;
   transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Scrollbar styling — matches dark design language */
+::-webkit-scrollbar {
+  width: 3px;
+  height: 3px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--brand-acid);
+  border-radius: 0;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--brand-acid);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--brand-acid) transparent;
 }

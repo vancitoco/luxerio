@@ -8,7 +8,7 @@ import {
   CUSTOMER_QUERY,
 } from '../lib/shopify/customer-queries.js';
 
-const TOKEN_KEY = 'luxerio-customer-token';
+const TOKEN_KEY = 'vancito-customer-token';
 const CustomerContext = createContext(null);
 
 export function CustomerProvider({ children }) {

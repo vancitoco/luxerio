@@ -111,7 +111,7 @@ export default function Product() {
             )}
 
             {/* Title. */}
-            <h1 className="font-display text-3xl font-black uppercase leading-tight tracking-tight text-primary md:text-4xl">
+            <h1 className="font-display text-3xl font-black uppercase leading-tight tracking-tight text-primary break-words md:text-4xl">
               {product.title}
             </h1>
 

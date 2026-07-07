@@ -10,7 +10,7 @@ import {
 import { trackEvent, EVENTS } from '../lib/analytics/ga4.js';
 
 const CartContext = createContext(null);
-const CART_ID_KEY = 'luxerio-cart-id';
+const CART_ID_KEY = 'vancito-cart-id';
 
 // Parse Shopify cart response into a flat line array for easy rendering.
 function parseLines(cart) {

@@ -12,7 +12,7 @@ import FeaturedProducts from '../components/FeaturedProducts.jsx';
 export default function Home() {
   return (
     <>
-      <Hero />
+      <Hero heroBg="https://images.unsplash.com/photo-1523398002811-999ca8dec234?w=1920&q=80&auto=format&fit=crop" />
       <CategoryBento />
       <FeaturedProducts />
     </>

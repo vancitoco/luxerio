@@ -1,3 +1,13 @@
+const PRODUCT_FIELDS = /* GraphQL */ `
+  id handle title tags productType
+  featuredImage { url altText }
+  images(first: 2) { edges { node { url altText } } }
+  priceRange { minVariantPrice { amount currencyCode } }
+  variants(first: 50) {
+    edges { node { id availableForSale selectedOptions { name value } } }
+  }
+`;
+
 export const PRODUCTS_QUERY = /* GraphQL */ `
   query Products(
     $first: Int = 24
@@ -14,18 +24,33 @@ export const PRODUCTS_QUERY = /* GraphQL */ `
       query: $query
     ) {
       pageInfo { hasNextPage endCursor }
+      edges { node { ${PRODUCT_FIELDS} } }
+    }
+  }
+`;
+
+export const SEARCH_PRODUCTS_QUERY = /* GraphQL */ `
+  query SearchProducts(
+    $query: String!
+    $first: Int = 24
+    $sortKey: SearchSortKeys
+    $reverse: Boolean
+    $after: String
+    $productFilters: [ProductFilter!]
+  ) {
+    search(
+      query: $query
+      first: $first
+      sortKey: $sortKey
+      reverse: $reverse
+      after: $after
+      productFilters: $productFilters
+      types: [PRODUCT]
+    ) {
+      pageInfo { hasNextPage endCursor }
       edges {
         node {
-          id
-          handle
-          title
-          tags
-          productType
-          featuredImage { url altText }
-          priceRange { minVariantPrice { amount currencyCode } }
-          variants(first: 1) {
-            edges { node { id availableForSale } }
-          }
+          ... on Product { ${PRODUCT_FIELDS} }
         }
       }
     }
@@ -43,6 +68,7 @@ export const FEATURED_PRODUCTS_QUERY = /* GraphQL */ `
           description
           tags
           featuredImage { url altText }
+          images(first: 2) { edges { node { url altText } } }
           priceRange { minVariantPrice { amount currencyCode } }
           variants(first: 1) {
             edges { node { id availableForSale } }
@@ -60,6 +86,7 @@ export const PRODUCT_RECOMMENDATIONS_QUERY = /* GraphQL */ `
       handle
       title
       featuredImage { url altText }
+      images(first: 2) { edges { node { url altText } } }
       priceRange { minVariantPrice { amount currencyCode } }
       tags
     }

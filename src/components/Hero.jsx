@@ -12,10 +12,10 @@ export default function Hero({ heroBg }) {
 
   return (
     <section
-      className="relative min-h-[100dvh] w-full overflow-hidden"
+      className={`relative min-h-[100dvh] w-full overflow-hidden${heroBg ? ' bg-cover bg-center' : ''}`}
       style={heroBg ? { backgroundImage: `url(${heroBg})` } : undefined}
     >
-      <div className="absolute inset-0 bg-[#0a0a0a]" />
+      {!heroBg && <div className="absolute inset-0 bg-[#0a0a0a]" />}
 
       <div
         className="absolute inset-0 opacity-[0.04]"

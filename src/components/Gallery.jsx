@@ -1,8 +1,18 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { shopifyImg, shopifySrcSet, markLoaded, onImgLoad } from '../lib/shopify/image.js';
 
 export default function Gallery({ images = [] }) {
   const [active, setActive] = useState(0);
   const touchStartX = useRef(null);
+
+  // Preload adjacent images so arrow/swipe switches are instant.
+  useEffect(() => {
+    if (images.length < 2) return;
+    [active + 1, active - 1].forEach((i) => {
+      const img = images[(i + images.length) % images.length];
+      if (img) new Image().src = shopifyImg(img.url, 1200);
+    });
+  }, [active, images]);
 
   const prev = () => setActive((i) => (i - 1 + images.length) % images.length);
   const next = () => setActive((i) => (i + 1) % images.length);
@@ -33,9 +43,16 @@ export default function Gallery({ images = [] }) {
         {mainImg ? (
           <img
             key={mainImg.url}
-            src={mainImg.url}
+            src={shopifyImg(mainImg.url, 1200)}
+            srcSet={shopifySrcSet(mainImg.url, [800, 1200, 1600])}
+            sizes="(min-width: 1024px) 50vw, 100vw"
             alt={mainImg.altText ?? 'Product image'}
-            className="h-full w-full object-cover"
+            className="img-fade h-full w-full object-cover"
+            loading="eager"
+            fetchpriority="high"
+            decoding="async"
+            ref={markLoaded}
+            onLoad={onImgLoad}
           />
         ) : (
           <GalleryPlaceholder />
@@ -100,7 +117,13 @@ export default function Gallery({ images = [] }) {
                 i === active ? 'border-acid' : 'border-hairline hover:border-primary'
               }`}
             >
-              <img src={img.url} alt={img.altText ?? ''} className="h-full w-full object-cover" />
+              <img
+                src={shopifyImg(img.url, 128)}
+                alt={img.altText ?? ''}
+                className="h-full w-full object-cover"
+                loading="lazy"
+                decoding="async"
+              />
             </button>
           ))}
         </div>

@@ -6,7 +6,7 @@ import { trackEvent, EVENTS } from '../lib/analytics/ga4.js';
   `availableForSale: false` → greyed-out + unselectable.
 */
 export default function VariantSelector({ variants = [], selected, onSelect }) {
-  // Group by Size option value.
+  // Group by Size option value — keep original variant as `_variant` for onSelect.
   const sizeVariants = variants
     .filter((v) => v.selectedOptions?.some((o) => o.name === 'Size'))
     .map((v) => ({
@@ -15,6 +15,7 @@ export default function VariantSelector({ variants = [], selected, onSelect }) {
       available: v.availableForSale,
       low: v.quantityAvailable != null && v.quantityAvailable > 0 && v.quantityAvailable < 3,
       price: v.price,
+      _variant: v,
     }));
 
   // Fallback: if no Size option, show variants by title.
@@ -26,11 +27,12 @@ export default function VariantSelector({ variants = [], selected, onSelect }) {
         available: v.availableForSale,
         low: false,
         price: v.price,
+        _variant: v,
       }));
 
   const handleSelect = (item) => {
     if (!item.available) return;
-    onSelect(item);
+    onSelect(item._variant);
     trackEvent(EVENTS.SELECT_VARIANT, { variant_id: item.id, size: item.size });
   };
 

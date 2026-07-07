@@ -1,30 +1,33 @@
 import { Link } from 'react-router-dom';
 import { trackEvent, EVENTS } from '../lib/analytics/ga4.js';
+import { markLoaded, onImgLoad } from '../lib/shopify/image.js';
+
+const IMG = (id) => `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=800&q=80`;
 
 const CATEGORIES = [
   {
-    label: 'Outerwear',
-    sub: 'Protocols',
-    tag: 'OUTERWEAR',
-    href: '/shop?category=outerwear',
-    accent: 'col-span-2 row-span-2',
-    img: 'https://picsum.photos/seed/outerwear-tactical-jacket/800/900',
-  },
-  {
-    label: 'Eyewear',
-    sub: null,
-    tag: 'EYEWEAR',
-    href: '/shop?category=eyewear',
-    accent: '',
-    img: 'https://picsum.photos/seed/eyewear-optic-lens/600/700',
-  },
-  {
-    label: 'Footwear',
-    sub: null,
+    label: "Men's Shoes",
+    sub: 'Footwear',
     tag: 'FOOTWEAR',
-    href: '/shop?category=footwear',
+    href: '/shop?categories=mens-shoes',
+    accent: 'col-span-2 row-span-2',
+    img: IMG('1542291026-7eec264c27ff'),
+  },
+  {
+    label: 'T-Shirts',
+    sub: null,
+    tag: 'TOPS',
+    href: '/shop?categories=t-shirts',
     accent: '',
-    img: 'https://picsum.photos/seed/footwear-urban-boot/600/700',
+    img: IMG('1521572163474-6864f9cf17ab'),
+  },
+  {
+    label: 'Watches',
+    sub: null,
+    tag: 'ACCESSORIES',
+    href: '/shop?categories=watches-men',
+    accent: '',
+    img: IMG('1523275335684-37898b6baf30'),
   },
 ];
 
@@ -54,8 +57,11 @@ export default function CategoryBento() {
             <img
               src={cat.img}
               alt={cat.label}
-              className="absolute inset-0 h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+              className="img-fade absolute inset-0 h-full w-full object-cover group-hover:scale-105"
               loading="lazy"
+              decoding="async"
+              ref={markLoaded}
+              onLoad={onImgLoad}
             />
 
             {/* Dark scrim so text stays legible over photo. */}
