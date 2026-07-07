@@ -1,12 +1,12 @@
 import Nav from './Nav.jsx';
 import Footer from './Footer.jsx';
-import GreenStrip from './GreenStrip.jsx';
+import AnnouncementBar from './AnnouncementBar.jsx';
 
 export default function Layout({ children }) {
   return (
     <div className="flex min-h-screen flex-col bg-base text-primary">
+      <AnnouncementBar />
       <Nav />
-      <GreenStrip />
       <main className="flex-1">{children}</main>
       <Footer />
     </div>
