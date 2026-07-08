@@ -1,17 +1,41 @@
 import { useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
-import { MagnifyingGlass, ShoppingBag, User, List, X } from '@phosphor-icons/react';
+import { MagnifyingGlass, ShoppingBag, User, List, X, CaretDown } from '@phosphor-icons/react';
 import { useCart } from '../context/CartContext.jsx';
 import { useCustomer } from '../context/CustomerContext.jsx';
 import ThemeToggle from './ThemeToggle.jsx';
 import SearchModal from './SearchModal.jsx';
 import AuthModal from './AuthModal.jsx';
 
-const LINKS = [
-  { label: 'Home',       to: '/' },
-  { label: 'Shop',       to: '/shop' },
-  { label: 'Categories', to: '/categories' },
+const NAV_GROUPS = [
+  {
+    label: 'Men',
+    items: [
+      { label: 'T-Shirts', value: 't-shirts' },
+      { label: 'Shirts', value: 'shirts' },
+      { label: 'Jeans', value: 'jeans' },
+      { label: 'Trousers', value: 'trousers' },
+      { label: "Men's Shoes", value: 'mens-shoes' },
+      { label: 'Watches for Men', value: 'watches-men' },
+    ],
+  },
+  {
+    label: 'Women',
+    items: [
+      { label: "Women's Shoes", value: 'womens-shoes' },
+      { label: 'Watches for Women', value: 'watches-women' },
+    ],
+  },
+  {
+    label: 'Accessories',
+    items: [
+      { label: 'Sunglasses', value: 'sunglasses' },
+      { label: 'Watches for Men', value: 'watches-men' },
+      { label: 'Watches for Women', value: 'watches-women' },
+    ],
+  },
 ];
+const shopHref = (value) => `/shop?categories=${value}`;
 
 export default function Nav() {
   const { count } = useCart();
@@ -33,27 +57,51 @@ export default function Nav() {
           {/* Brand. */}
           <Link to="/" onClick={close} className="flex items-center gap-3">
             <img src="/brand/vancito-logo.png" alt="" className="h-9 w-9 object-contain" aria-hidden="true" />
-            <span className="font-display text-xl font-extrabold uppercase tracking-tight text-primary">
+            <span className="font-display text-xl font-bold uppercase tracking-[0.08em] text-primary">
               Vancito.co
             </span>
           </Link>
 
           {/* Center links — desktop only. */}
           <ul className="hidden items-center gap-8 md:flex" role="list">
-            {LINKS.map((l) => (
-              <li key={l.label}>
-                <NavLink
-                  to={l.to}
-                  className={({ isActive }) =>
-                    `font-display text-xs font-bold uppercase tracking-widest transition-colors hover:text-acid ${
-                      isActive ? 'text-acid' : 'text-secondary'
-                    }`
-                  }
+            {NAV_GROUPS.map((group) => (
+              <li key={group.label} className="group relative">
+                <button
+                  type="button"
+                  className="flex items-center gap-1.5 py-5 font-display text-xs font-semibold uppercase tracking-[0.2em] text-primary transition-opacity hover:opacity-60"
+                  aria-haspopup="true"
                 >
-                  {l.label}
-                </NavLink>
+                  {group.label}
+                  <CaretDown size={10} weight="bold" aria-hidden="true" />
+                </button>
+                <div className="invisible absolute left-1/2 top-full z-50 min-w-[220px] -translate-x-1/2 border border-hairline bg-base opacity-0 shadow-sm transition-all duration-150 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+                  <ul className="flex flex-col py-3" role="list">
+                    {group.items.map((item) => (
+                      <li key={`${group.label}-${item.value}`}>
+                        <Link
+                          to={shopHref(item.value)}
+                          className="block px-6 py-2.5 font-display text-[11px] font-medium uppercase tracking-[0.15em] text-secondary transition-colors hover:bg-elevated hover:text-primary"
+                        >
+                          {item.label}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </li>
             ))}
+            <li>
+              <NavLink
+                to="/categories"
+                className={({ isActive }) =>
+                  `py-5 font-display text-xs font-semibold uppercase tracking-[0.2em] transition-opacity hover:opacity-60 ${
+                    isActive ? 'text-primary underline underline-offset-8' : 'text-primary'
+                  }`
+                }
+              >
+                Categories
+              </NavLink>
+            </li>
           </ul>
 
           {/* Actions. */}
@@ -62,7 +110,7 @@ export default function Nav() {
               type="button"
               aria-label="Search"
               onClick={() => setSearchOpen(true)}
-              className="grid h-9 w-9 place-items-center text-primary hover:text-acid"
+              className="grid h-9 w-9 place-items-center text-primary hover:opacity-60"
             >
               <MagnifyingGlass size={18} weight="regular" />
             </button>
@@ -70,7 +118,7 @@ export default function Nav() {
             <Link
               to="/cart"
               aria-label={`Cart, ${count} item${count !== 1 ? 's' : ''}`}
-              className="relative grid h-9 w-9 place-items-center text-primary hover:text-acid"
+              className="relative grid h-9 w-9 place-items-center text-primary hover:opacity-60"
             >
               <ShoppingBag size={18} weight="regular" />
               {count > 0 && (
@@ -96,7 +144,7 @@ export default function Nav() {
                 type="button"
                 aria-label="Sign in"
                 onClick={() => setAuthOpen(true)}
-                className="hidden h-9 w-9 place-items-center text-primary hover:text-acid md:grid"
+                className="hidden h-9 w-9 place-items-center text-primary hover:opacity-60 md:grid"
               >
                 <User size={18} weight="regular" />
               </button>
@@ -111,7 +159,7 @@ export default function Nav() {
               aria-expanded={menuOpen}
               aria-controls="mobile-menu"
               aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-              className="grid h-9 w-9 place-items-center text-primary hover:text-acid md:hidden"
+              className="grid h-9 w-9 place-items-center text-primary hover:opacity-60 md:hidden"
             >
               {menuOpen ? <X size={18} weight="regular" /> : <List size={18} weight="regular" />}
             </button>
@@ -145,20 +193,16 @@ export default function Nav() {
         }`}
       >
         <nav className="flex flex-col px-6 pb-6 pt-2">
-          {LINKS.map((l) => (
-            <NavLink
-              key={l.label}
-              to={l.to}
-              onClick={close}
-              className={({ isActive }) =>
-                `border-b border-hairline py-4 font-display text-sm font-semibold uppercase tracking-widest transition-colors hover:text-acid ${
-                  isActive ? 'text-acid' : 'text-primary'
-                }`
-              }
-            >
-              {l.label}
-            </NavLink>
+          {NAV_GROUPS.map((group) => (
+            <MobileGroup key={group.label} group={group} onNavigate={close} />
           ))}
+          <Link
+            to="/categories"
+            onClick={close}
+            className="border-b border-hairline py-4 font-display text-sm font-semibold uppercase tracking-[0.2em] text-primary"
+          >
+            Categories
+          </Link>
           <Link
             to="/cart"
             onClick={close}
@@ -190,6 +234,37 @@ export default function Nav() {
         </nav>
       </div>
     </>
+  );
+}
+
+function MobileGroup({ group, onNavigate }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="border-b border-hairline">
+      <button
+        type="button"
+        onClick={() => setOpen((o) => !o)}
+        aria-expanded={open}
+        className="flex w-full items-center justify-between py-4 font-display text-sm font-semibold uppercase tracking-[0.2em] text-primary"
+      >
+        {group.label}
+        <CaretDown size={12} weight="bold" className={`transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
+      </button>
+      {open && (
+        <div className="flex flex-col pb-3">
+          {group.items.map((item) => (
+            <Link
+              key={`${group.label}-${item.value}`}
+              to={shopHref(item.value)}
+              onClick={onNavigate}
+              className="py-2.5 pl-4 font-display text-xs font-medium uppercase tracking-[0.15em] text-secondary"
+            >
+              {item.label}
+            </Link>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }
 
