@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ShoppingBag, Check, ShieldCheck } from '@phosphor-icons/react';
+import { ShoppingBag, Check, ShieldCheck, Lightning } from '@phosphor-icons/react';
 import { useProduct, useProductRecommendations } from '../lib/shopify/hooks.js';
 import { useCart } from '../context/CartContext.jsx';
+import { storefrontQuery } from '../lib/shopify/client.js';
+import { CART_CREATE } from '../lib/shopify/mutations.js';
 import Gallery from '../components/Gallery.jsx';
 import VariantSelector from '../components/VariantSelector.jsx';
 import Accordion from '../components/Accordion.jsx';
@@ -26,6 +28,8 @@ export default function Product() {
 
   const [selected, setSelected]   = useState(null);
   const [addedMsg, setAddedMsg]   = useState(false);
+  const [buying, setBuying]       = useState(false);
+  const [buyError, setBuyError]   = useState(null);
 
   // Default to first available variant.
   useEffect(() => {
@@ -54,6 +58,37 @@ export default function Product() {
     });
     setAddedMsg(true);
     setTimeout(() => setAddedMsg(false), 2000);
+  };
+
+  // Buy Now: separate one-item cart straight to Shopify checkout.
+  // Deliberately does NOT touch the persistent bag cart (localStorage id stays).
+  const handleBuyNow = async () => {
+    if (!selected || buying) return;
+    setBuying(true);
+    setBuyError(null);
+    trackEvent(EVENTS.BEGIN_CHECKOUT, {
+      value: parseFloat(selected.price?.amount ?? 0),
+      currency: selected.price?.currencyCode,
+      items: [{ item_id: selected.id, item_name: product.title, price: parseFloat(selected.price?.amount ?? 0) }],
+    });
+    try {
+      const d = await storefrontQuery(CART_CREATE, {
+        lines: [{ merchandiseId: selected.id, quantity: 1 }],
+      });
+      const userErrors = d.cartCreate?.userErrors;
+      const url = d.cartCreate?.cart?.checkoutUrl;
+      if (url) {
+        window.location.href = url;
+        return; // navigating away — leave button in loading state
+      }
+      console.error('[Vancito] Buy Now failed:', userErrors ?? d);
+      setBuyError('Could not start checkout. Please try again.');
+      setBuying(false);
+    } catch (err) {
+      console.error('[Vancito] Buy Now request failed:', err);
+      setBuyError('Could not start checkout. Please try again.');
+      setBuying(false);
+    }
   };
 
   const soldOut = selected ? !selected.availableForSale : false;
@@ -139,27 +174,36 @@ export default function Product() {
               onSelect={setSelected}
             />
 
-            {/* Add to bag. */}
+            {/* Buy now / add to bag. */}
             <div className="flex flex-col gap-3">
               <button
                 type="button"
-                onClick={handleAddToBag}
-                disabled={soldOut || !selected}
-                className={`flex w-full items-center justify-center gap-3 py-4 font-display text-sm font-semibold uppercase tracking-widest transition-colors active:scale-[0.98]
-                  ${soldOut
-                    ? 'cursor-not-allowed bg-elevated text-secondary'
-                    : addedMsg
-                    ? 'bg-primary text-base'
-                    : 'bg-primary text-base hover:opacity-80'
-                  }`}
+                onClick={handleBuyNow}
+                disabled={soldOut || !selected || buying}
+                className="flex w-full items-center justify-center gap-3 bg-primary py-4 font-display text-sm font-semibold uppercase tracking-[0.2em] text-base transition-opacity hover:opacity-85 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-40"
               >
-                {addedMsg ? (
-                  <>Added <Check size={16} weight="bold" /></>
-                ) : soldOut ? (
-                  'Sold Out'
-                ) : (
-                  <><ShoppingBag size={16} weight="regular" /> Add To Bag</>
-                )}
+                {buying ? 'Redirecting…' : soldOut ? 'Sold Out' : (<><Lightning size={16} weight="fill" /> Buy Now</>)}
+              </button>
+
+              {buyError && (
+                <p className="text-center font-display text-[11px] uppercase tracking-wider text-sale">
+                  {buyError}
+                </p>
+              )}
+
+              <button
+                type="button"
+                onClick={handleAddToBag}
+                disabled={soldOut || !selected || buying}
+                className={`flex w-full items-center justify-center gap-3 border py-4 font-display text-sm font-semibold uppercase tracking-[0.2em] transition-colors active:scale-[0.98] ${
+                  soldOut
+                    ? 'cursor-not-allowed border-hairline text-secondary opacity-50'
+                    : addedMsg
+                    ? 'border-primary bg-primary text-base'
+                    : 'border-primary text-primary hover:bg-primary hover:text-base'
+                }`}
+              >
+                {addedMsg ? (<>Added <Check size={16} weight="bold" /></>) : (<><ShoppingBag size={16} weight="regular" /> Add To Bag</>)}
               </button>
 
               <p className="flex items-center justify-center gap-2 text-center font-display text-[10px] uppercase tracking-widest text-secondary">

@@ -1,6 +1,6 @@
 // Shared fragment — declared first to avoid temporal dead zone.
 const CART_LINES_FRAGMENT = /* GraphQL */ `
-  fragment CartLines on CartLineConnection {
+  fragment CartLines on BaseCartLineConnection {
     edges {
       node {
         id
