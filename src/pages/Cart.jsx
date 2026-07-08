@@ -20,7 +20,7 @@ export default function Cart() {
     <div className="mx-auto max-w-[1280px] px-6 py-10 lg:px-16">
       {/* Header. */}
       <div className="mb-10 border-b border-hairline pb-6">
-        <h1 className="font-display text-4xl font-semibold uppercase tracking-tight text-primary md:text-5xl">
+        <h1 className="font-display text-4xl font-semibold uppercase tracking-[0.1em] text-primary md:text-5xl">
           Manifest: Cart
         </h1>
         {count > 0 && (

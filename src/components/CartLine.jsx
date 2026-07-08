@@ -30,7 +30,7 @@ export default function CartLine({ line }) {
             {badge}
           </span>
         )}
-        <p className="font-display text-sm font-semibold uppercase leading-tight tracking-tight text-primary">
+        <p className="font-display text-sm font-semibold uppercase leading-tight tracking-[0.08em] text-primary">
           {title}
         </p>
         <p className="font-display text-[10px] uppercase tracking-wider text-secondary">

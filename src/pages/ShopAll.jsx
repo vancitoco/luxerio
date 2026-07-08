@@ -136,15 +136,15 @@ export default function ShopAll() {
     <div className="mx-auto max-w-[1280px] px-6 py-12 lg:px-16">
       {/* Page header */}
       <div className="mb-8 border-b border-hairline pb-6">
-        <h1 className="font-display text-4xl font-semibold uppercase tracking-tight text-primary md:text-5xl">
+        <h1 className="font-display text-4xl font-semibold uppercase tracking-[0.1em] text-primary md:text-5xl">
           {urlQuery ? `"${urlQuery}"` : 'Shop'}
         </h1>
         <p className="mt-2 text-xs uppercase tracking-wider text-secondary">
           {isLoading
             ? 'Loading...'
             : totalShown > 0
-            ? `Showing ${totalShown} technical garment${totalShown !== 1 ? 's' : ''}${hasNextPage ? '+' : ''}.`
-            : 'No garments found.'}
+            ? `Showing ${totalShown} product${totalShown !== 1 ? 's' : ''}${hasNextPage ? '+' : ''}.`
+            : 'No products found.'}
         </p>
       </div>
 

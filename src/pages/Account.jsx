@@ -44,7 +44,7 @@ export default function Account() {
           <span className="inline-block bg-primary px-3 py-1 font-display text-[10px] font-semibold uppercase tracking-widest text-base">
             Access Required
           </span>
-          <h1 className="font-display text-3xl font-semibold uppercase tracking-tight text-primary">
+          <h1 className="font-display text-3xl font-semibold uppercase tracking-[0.1em] text-primary">
             Sign in to your account.
           </h1>
           <button
@@ -65,7 +65,7 @@ export default function Account() {
       {/* Header. */}
       <div className="mb-10 flex items-start justify-between border-b border-hairline pb-6">
         <div>
-          <h1 className="font-display text-4xl font-semibold uppercase tracking-tight text-primary md:text-5xl">
+          <h1 className="font-display text-4xl font-semibold uppercase tracking-[0.1em] text-primary md:text-5xl">
             {customer.firstName ? `${customer.firstName} ${customer.lastName ?? ''}`.trim() : 'Account'}
           </h1>
           <p className="mt-2 font-display text-[10px] uppercase tracking-widest text-secondary">

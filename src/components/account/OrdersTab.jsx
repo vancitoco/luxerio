@@ -59,7 +59,7 @@ export default function OrdersTab({ orders = [] }) {
               aria-expanded={isOpen}
               className="grid w-full grid-cols-[1fr_auto] items-center gap-4 py-4 text-left md:grid-cols-[1fr_auto_auto_auto_auto]"
             >
-              <span className="font-display text-sm font-semibold uppercase tracking-tight text-primary">
+              <span className="font-display text-sm font-semibold uppercase tracking-[0.08em] text-primary">
                 #{order.orderNumber}
               </span>
               <span className="hidden font-display text-[10px] uppercase tracking-wider text-secondary md:block">
@@ -105,7 +105,7 @@ export default function OrdersTab({ orders = [] }) {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-display text-xs font-semibold uppercase leading-tight tracking-tight text-primary">
+                      <p className="font-display text-xs font-semibold uppercase leading-tight tracking-[0.08em] text-primary">
                         {line.title}
                       </p>
                       {line.variant?.title && line.variant.title !== 'Default Title' && (

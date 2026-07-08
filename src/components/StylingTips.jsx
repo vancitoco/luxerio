@@ -15,7 +15,7 @@ export default function StylingTips({ products = [] }) {
   return (
     <section className="border-t border-hairline pt-20">
       <div className="mx-auto max-w-[1280px] px-6 lg:px-16">
-        <h2 className="mb-10 text-center font-display text-2xl font-semibold uppercase tracking-tight text-primary md:text-3xl">
+        <h2 className="mb-10 text-center font-display text-2xl font-semibold uppercase tracking-[0.15em] text-primary md:text-3xl">
           Styling Tips
         </h2>
 
@@ -97,7 +97,7 @@ function CrossSellCard({ product }) {
         )}
       </div>
       <div className="flex items-center justify-between p-4">
-        <p className="font-display text-xs font-semibold uppercase tracking-tight text-primary">
+        <p className="font-display text-xs font-semibold uppercase tracking-[0.08em] text-primary">
           {product.title}
         </p>
         <button

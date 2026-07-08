@@ -28,8 +28,8 @@ export default function Categories() {
   return (
     <div className="mx-auto max-w-[1280px] px-6 py-10 lg:px-16">
       <div className="mb-10 border-b border-hairline pb-6">
-        <h1 className="font-display text-4xl font-semibold uppercase tracking-tight text-primary md:text-5xl">
-          Classifications
+        <h1 className="font-display text-4xl font-semibold uppercase tracking-[0.1em] text-primary md:text-5xl">
+          Categories
         </h1>
         <p className="mt-2 font-display text-[10px] uppercase tracking-widest text-secondary">
           {CATEGORIES.length} categories — select to browse.

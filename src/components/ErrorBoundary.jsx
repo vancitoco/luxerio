@@ -21,7 +21,7 @@ export default class ErrorBoundary extends Component {
           <span className="inline-block bg-primary px-3 py-1 font-display text-[10px] font-semibold uppercase tracking-widest text-base">
             Error
           </span>
-          <h2 className="font-display text-2xl font-semibold uppercase tracking-tight text-primary">
+          <h2 className="font-display text-2xl font-semibold uppercase tracking-[0.15em] text-primary">
             Something went wrong.
           </h2>
           <p className="font-display text-xs uppercase tracking-wider text-secondary">
