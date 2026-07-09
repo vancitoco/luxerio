@@ -124,7 +124,7 @@ export default function Nav() {
               {count > 0 && (
                 <span
                   aria-hidden="true"
-                  className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center bg-primary px-1 text-[10px] font-bold text-base"
+                  className="absolute -right-1 -top-1 grid h-4 min-w-4 place-items-center bg-primary px-1 text-[10px] font-bold leading-none text-base"
                 >
                   {count}
                 </span>

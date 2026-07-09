@@ -32,6 +32,11 @@ export default function App() {
     return () => clearTimeout(t);
   }, [location.pathname]);
 
+  // Reset scroll on every navigation — React Router doesn't do this by default.
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [location.pathname]);
+
   return (
     <Layout>
       <ErrorBoundary>
