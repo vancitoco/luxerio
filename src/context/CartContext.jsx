@@ -43,9 +43,17 @@ export function CartProvider({ children }) {
     else localStorage.removeItem(CART_ID_KEY);
   }, [cartId]);
 
+  // Tracks the current cartId synchronously so the mount-only hydrate fetch
+  // below can tell, once it resolves, whether the bag was cleared/changed
+  // while it was in flight (e.g. clearBag() ran mid-request) — without this,
+  // a slow hydrate response can resurrect a cart the user already cleared.
+  const cartIdRef = useRef(cartId);
+  useEffect(() => { cartIdRef.current = cartId; }, [cartId]);
+
   // Hydrate existing cart from Shopify on first mount.
   useEffect(() => {
     if (!cartId) return;
+    const fetchedForId = cartId;
     storefrontQuery(
       /* GraphQL */ `
         query Cart($id: ID!) {
@@ -62,13 +70,17 @@ export function CartProvider({ children }) {
           }
         }
       `,
-      { id: cartId },
+      { id: fetchedForId },
     )
       .then((d) => {
+        if (cartIdRef.current !== fetchedForId) return; // stale — bag changed since this request started
         if (!d.cart) { setCartId(null); return; }
         applyCart(d.cart);
       })
-      .catch(() => setCartId(null));
+      .catch(() => {
+        if (cartIdRef.current !== fetchedForId) return;
+        setCartId(null);
+      });
   }, []);
 
   function applyCart(cart) {
@@ -165,6 +177,7 @@ export function CartProvider({ children }) {
       lines: lines.map((l) => toCheckoutLine({
         variantId: l.merchandiseId, quantity: l.qty,
         title: l.title, variant: l.variant, price: l.price, image: l.image,
+        currencyCode: l.currencyCode,
       })),
       source: 'cart',
     });

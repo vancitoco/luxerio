@@ -72,6 +72,7 @@ export default function Product() {
         variantId: selected.id, quantity: 1,
         title: product.title, variant: selected.title,
         price: parseFloat(selected.price?.amount ?? 0), image: images[0]?.url,
+        currencyCode: selected.price?.currencyCode,
       })],
       source: 'buy-now',
     });

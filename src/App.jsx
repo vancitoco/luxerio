@@ -7,6 +7,8 @@ import Product from './pages/Product.jsx';
 import Cart from './pages/Cart.jsx';
 import Account from './pages/Account.jsx';
 import Categories from './pages/Categories.jsx';
+import Checkout from './pages/Checkout.jsx';
+import OrderConfirmed from './pages/OrderConfirmed.jsx';
 import ErrorBoundary from './components/ErrorBoundary.jsx';
 import { trackPageView } from './lib/analytics/ga4.js';
 
@@ -29,6 +31,8 @@ export default function App() {
           <Route path="/cart" element={<ErrorBoundary><Cart /></ErrorBoundary>} />
           <Route path="/account" element={<ErrorBoundary><Account /></ErrorBoundary>} />
           <Route path="/categories" element={<ErrorBoundary><Categories /></ErrorBoundary>} />
+          <Route path="/checkout" element={<ErrorBoundary><Checkout /></ErrorBoundary>} />
+          <Route path="/order-confirmed" element={<ErrorBoundary><OrderConfirmed /></ErrorBoundary>} />
         </Routes>
       </ErrorBoundary>
     </Layout>

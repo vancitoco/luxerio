@@ -7,8 +7,8 @@ const KEY = 'vancito-checkout';
 
 // Shared shape for a checkout line — display fields only; the backend re-prices
 // everything server-side from variantId+quantity alone, never trusts these.
-export function toCheckoutLine({ variantId, quantity, title, variant, price, image }) {
-  return { variantId, quantity, title, variant, price, image };
+export function toCheckoutLine({ variantId, quantity, title, variant, price, image, currencyCode }) {
+  return { variantId, quantity, title, variant, price, image, currencyCode: currencyCode || 'INR' };
 }
 
 export function startCheckout({ lines, source }) {
