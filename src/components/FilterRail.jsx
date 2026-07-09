@@ -7,11 +7,51 @@ import {
   WOMENS_SHOE_OPTIONS,
 } from '../lib/shopify/filters.js';
 
+// Which size groups apply to which categories. Categories not listed here
+// (watches, sunglasses) have no size axis — no group shows for them.
+const CATEGORY_SIZE_GROUPS = {
+  't-shirts': ['clothing'],
+  'shirts': ['clothing'],
+  'jeans': ['waist'],
+  'trousers': ['waist'],
+  'mens-shoes': ['mens-shoe'],
+  'womens-shoes': ['womens-shoe'],
+};
+
+const SIZE_GROUP_VALUES = {
+  clothing: CLOTHING_SIZE_OPTIONS,
+  waist: WAIST_SIZE_OPTIONS,
+  'mens-shoe': MENS_SHOE_OPTIONS.map((o) => o.value),
+  'womens-shoe': WOMENS_SHOE_OPTIONS.map((o) => o.value),
+};
+
+// No category picked → every group is fair game (unfiltered browse).
+// Otherwise → union of groups applicable to the selected categories.
+function applicableGroups(categories) {
+  if (!categories.length) return new Set(Object.keys(SIZE_GROUP_VALUES));
+  const groups = new Set();
+  categories.forEach((cat) => (CATEGORY_SIZE_GROUPS[cat] || []).forEach((g) => groups.add(g)));
+  return groups;
+}
+
 export default function FilterRail({ categories, sizes, onCategoriesChange, onSizesChange, onApply, onClose }) {
+  const activeGroups = applicableGroups(categories);
+
   const toggleCategory = (val) => {
-    onCategoriesChange(
-      categories.includes(val) ? categories.filter((x) => x !== val) : [...categories, val]
+    const nextCategories = categories.includes(val)
+      ? categories.filter((x) => x !== val)
+      : [...categories, val];
+
+    // Drop any selected sizes that fall outside the newly-applicable groups —
+    // otherwise a stale hidden selection silently zeroes out results again.
+    const nextGroups = applicableGroups(nextCategories);
+    const allowedValues = new Set(
+      [...nextGroups].flatMap((g) => SIZE_GROUP_VALUES[g])
     );
+    const nextSizes = sizes.filter((s) => allowedValues.has(s));
+
+    onCategoriesChange(nextCategories);
+    if (nextSizes.length !== sizes.length) onSizesChange(nextSizes);
   };
 
   const toggleSize = (s) => {
@@ -43,13 +83,13 @@ export default function FilterRail({ categories, sizes, onCategoriesChange, onSi
       <div className="mb-6">
         <div className="mb-3 flex items-center justify-between">
           <p className="font-display text-[9px] font-semibold uppercase tracking-[0.2em] text-secondary">Category</p>
-          {categories.length > 0 && (
+          {(categories.length > 0 || sizes.length > 0) && (
             <button
               type="button"
-              onClick={() => onCategoriesChange([])}
+              onClick={() => { onCategoriesChange([]); onSizesChange([]); }}
               className="font-display text-[9px] uppercase tracking-widest text-acid hover:opacity-70"
             >
-              Clear
+              Clear All
             </button>
           )}
         </div>
@@ -92,49 +132,61 @@ export default function FilterRail({ categories, sizes, onCategoriesChange, onSi
         </ul>
       </div>
 
-      <div className="mb-6 h-px bg-hairline" />
-
       {/* Clothing Size — T-Shirts & Shirts */}
-      <SizeGroup
-        label="Clothing Size"
-        ariaLabel="Clothing size filter"
-        options={CLOTHING_SIZE_OPTIONS}
-        sizes={sizes}
-        onToggle={toggleSize}
-      />
-
-      <div className="mb-6 h-px bg-hairline" />
+      {activeGroups.has('clothing') && (
+        <>
+          <div className="mb-6 h-px bg-hairline" />
+          <SizeGroup
+            label="Clothing Size"
+            ariaLabel="Clothing size filter"
+            options={CLOTHING_SIZE_OPTIONS}
+            sizes={sizes}
+            onToggle={toggleSize}
+          />
+        </>
+      )}
 
       {/* Waist Size — Jeans & Trousers */}
-      <SizeGroup
-        label="Waist Size"
-        ariaLabel="Waist size filter"
-        options={WAIST_SIZE_OPTIONS}
-        sizes={sizes}
-        onToggle={toggleSize}
-      />
-
-      <div className="mb-6 h-px bg-hairline" />
+      {activeGroups.has('waist') && (
+        <>
+          <div className="mb-6 h-px bg-hairline" />
+          <SizeGroup
+            label="Waist Size"
+            ariaLabel="Waist size filter"
+            options={WAIST_SIZE_OPTIONS}
+            sizes={sizes}
+            onToggle={toggleSize}
+          />
+        </>
+      )}
 
       {/* Men's Shoe Size */}
-      <SizeGroup
-        label="Men's Shoes"
-        ariaLabel="Men's shoe size filter"
-        options={MENS_SHOE_OPTIONS}
-        sizes={sizes}
-        onToggle={toggleSize}
-      />
-
-      <div className="mb-6 h-px bg-hairline" />
+      {activeGroups.has('mens-shoe') && (
+        <>
+          <div className="mb-6 h-px bg-hairline" />
+          <SizeGroup
+            label="Men's Shoes"
+            ariaLabel="Men's shoe size filter"
+            options={MENS_SHOE_OPTIONS}
+            sizes={sizes}
+            onToggle={toggleSize}
+          />
+        </>
+      )}
 
       {/* Women's Shoe Size */}
-      <SizeGroup
-        label="Women's Shoes"
-        ariaLabel="Women's shoe size filter"
-        options={WOMENS_SHOE_OPTIONS}
-        sizes={sizes}
-        onToggle={toggleSize}
-      />
+      {activeGroups.has('womens-shoe') && (
+        <>
+          <div className="mb-6 h-px bg-hairline" />
+          <SizeGroup
+            label="Women's Shoes"
+            ariaLabel="Women's shoe size filter"
+            options={WOMENS_SHOE_OPTIONS}
+            sizes={sizes}
+            onToggle={toggleSize}
+          />
+        </>
+      )}
 
       <div className="mb-6 h-px bg-hairline" />
 
