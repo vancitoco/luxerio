@@ -8,8 +8,8 @@ const CATEGORIES = [
   {
     label: 'T-Shirts',
     href: '/shop?categories=t-shirts',
-    accent: 'col-span-2 row-span-2',
-    img: IMG('1521572163474-6864f9cf17ab'),
+    accent: 'col-span-2 md:row-span-2',
+    img: IMG('1576871337622-98d48d1cf531'),
   },
   {
     label: 'Jeans',
