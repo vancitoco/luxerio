@@ -5,15 +5,7 @@ import { shopifyImg, shopifySrcSet, markLoaded, onImgLoad } from '../lib/shopify
 
 /*
   Shared product card — used in FeaturedProducts (Home) and ProductGrid (Shop All).
-  New Arrival badge: inferred from Shopify `createdAt` (within NEW_ARRIVAL_DAYS).
 */
-const NEW_ARRIVAL_DAYS = 30;
-
-function isNewArrival(createdAt) {
-  if (!createdAt) return false;
-  return Date.now() - new Date(createdAt).getTime() < NEW_ARRIVAL_DAYS * 24 * 60 * 60 * 1000;
-}
-
 function fmt(amount, currencyCode = 'USD') {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: currencyCode }).format(amount);
 }
@@ -25,7 +17,6 @@ export default function ProductCard({ product, listName = 'product_list', positi
 
   const { handle, title, featuredImage, images, priceRange, variants } = product;
   const price = priceRange?.minVariantPrice;
-  const newArrival = isNewArrival(product.createdAt);
   const soldOut = variants?.edges?.[0]?.node?.availableForSale === false;
   const aboveFold = position != null && position < 6;
 
@@ -83,13 +74,6 @@ export default function ProductCard({ product, listName = 'product_list', positi
               altLoaded ? 'opacity-0 group-hover:opacity-100' : 'opacity-0'
             }`}
           />
-        )}
-
-        {/* New Arrival badge. */}
-        {newArrival && (
-          <div className="absolute left-3 top-3 bg-primary px-2.5 py-1 font-display text-[9px] font-semibold uppercase tracking-[0.15em] text-base">
-            New Arrival
-          </div>
         )}
 
         {/* Sold-out overlay. */}
