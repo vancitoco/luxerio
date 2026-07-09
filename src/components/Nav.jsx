@@ -110,7 +110,7 @@ export default function Nav() {
               type="button"
               aria-label="Search"
               onClick={() => setSearchOpen(true)}
-              className="grid h-9 w-9 place-items-center text-primary hover:opacity-60"
+              className="grid h-11 w-11 place-items-center text-primary hover:opacity-60 md:h-9 md:w-9"
             >
               <MagnifyingGlass size={18} weight="regular" />
             </button>
@@ -118,7 +118,7 @@ export default function Nav() {
             <Link
               to="/cart"
               aria-label={`Cart, ${count} item${count !== 1 ? 's' : ''}`}
-              className="relative grid h-9 w-9 place-items-center text-primary hover:opacity-60"
+              className="relative grid h-11 w-11 place-items-center text-primary hover:opacity-60 md:h-9 md:w-9"
             >
               <ShoppingBag size={18} weight="regular" />
               {count > 0 && (
@@ -159,7 +159,7 @@ export default function Nav() {
               aria-expanded={menuOpen}
               aria-controls="mobile-menu"
               aria-label={menuOpen ? 'Close menu' : 'Open menu'}
-              className="grid h-9 w-9 place-items-center text-primary hover:opacity-60 md:hidden"
+              className="grid h-11 w-11 place-items-center text-primary hover:opacity-60 md:hidden"
             >
               {menuOpen ? <X size={18} weight="regular" /> : <List size={18} weight="regular" />}
             </button>
