@@ -42,9 +42,13 @@ export async function handler(event) {
       return json(200, { ok: false, manual: true });
     }
     const { total, discount } = await priceCart(payload.lines, payload.discountCode);
+    // payment.entity.amount is what Razorpay actually captured — the same
+    // "derive from the real charge, not the tier" rule as confirm-order.
+    const chargedRupees = payment.amount / 100;
+    const codBalance = payload.paymentMethod === 'cod' ? Math.max(0, total - chargedRupees) : 0;
     const order = await createPaidOrder({
       payload, razorpayOrderId: rzpOrderId, razorpayPaymentId: payment.id,
-      totalRupees: total, discount,
+      chargedRupees, discount, codBalance,
     });
     return json(200, { ok: true, order: order.orderNumber });
   } catch (err) {
