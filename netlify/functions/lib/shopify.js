@@ -157,11 +157,12 @@ export async function findOrderByRzpId(razorpayOrderId) {
   return node ? { orderId: node.id, orderNumber: node.name } : null;
 }
 
-// Verified live against the 2024-10 Admin API schema via introspection (Task 6,
+// Verified live against the 2024-10 Admin API schema via introspection (Task 2,
 // Step 1) — every field name below (variantId/quantity, provinceCode,
 // itemFixedDiscountCode.code/amountSet, transaction kind/status enums, IN/INR
-// enum values) matches OrderCreateOrderInput and its nested input types exactly.
-export async function createPaidOrder({ payload, razorpayOrderId, razorpayPaymentId, totalRupees, discount }) {
+// enum values, PARTIALLY_PAID financialStatus) matches OrderCreateOrderInput and
+// its nested input types exactly.
+export async function createPaidOrder({ payload, razorpayOrderId, razorpayPaymentId, totalRupees, chargedRupees, discount, codBalance = 0 }) {
   const input = {
     lineItems: payload.lines.map((l) => ({ variantId: l.variantId, quantity: l.quantity })),
     email: payload.email,
@@ -176,13 +177,20 @@ export async function createPaidOrder({ payload, razorpayOrderId, razorpayPaymen
       countryCode: 'IN',
       phone: payload.address.phone,
     },
-    tags: [`rzp_${razorpayOrderId}`],
-    note: `Razorpay payment: ${razorpayPaymentId}${discount ? ` | code ${discount.code} (-₹${discount.amountOff})` : ''}`,
-    // Explicit, not inferred from the transaction alone — confirmed PAID is a
-    // valid OrderCreateFinancialStatus value via live schema introspection.
-    financialStatus: 'PAID',
+    tags: codBalance > 0 ? [`rzp_${razorpayOrderId}`, 'COD'] : [`rzp_${razorpayOrderId}`],
+    note: [
+      `Razorpay payment: ${razorpayPaymentId}`,
+      discount ? `code ${discount.code} (-₹${discount.amountOff})` : null,
+      codBalance > 0 ? `Balance due on delivery: ₹${codBalance}` : null,
+    ].filter(Boolean).join(' | '),
+    // PARTIALLY_PAID for COD orders — Shopify derives "partially paid" from
+    // order total vs. transaction total, this makes it explicit. Verified
+    // against the live 2024-10 schema (Task 2, Step 1) same as PAID was.
+    financialStatus: codBalance > 0 ? 'PARTIALLY_PAID' : 'PAID',
     transactions: [{ kind: 'SALE', status: 'SUCCESS', gateway: 'Razorpay',
-      amountSet: { shopMoney: { amount: String(totalRupees), currencyCode: 'INR' } } }],
+      // The transaction reflects what was ACTUALLY charged, not the order
+      // total — for a COD order that's the advance, not the full amount.
+      amountSet: { shopMoney: { amount: String(chargedRupees), currencyCode: 'INR' } } }],
   };
   if (discount) {
     input.discountCode = {
