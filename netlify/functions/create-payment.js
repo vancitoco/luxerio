@@ -3,6 +3,16 @@ import { validatePayload, encodeNotes } from './lib/payload.js';
 import { priceCart } from './lib/shopify.js';
 import { createRazorpayOrder } from './lib/razorpay.js';
 
+const COD_TIER_THRESHOLD_RUPEES = 1000;
+const COD_ADVANCE_BELOW_THRESHOLD = 200;
+const COD_ADVANCE_AT_OR_ABOVE_THRESHOLD = 300;
+
+function codAdvanceRupees(totalRupees) {
+  return totalRupees < COD_TIER_THRESHOLD_RUPEES
+    ? COD_ADVANCE_BELOW_THRESHOLD
+    : COD_ADVANCE_AT_OR_ABOVE_THRESHOLD;
+}
+
 const json = (status, body) => ({
   statusCode: status,
   headers: { 'Content-Type': 'application/json' },
@@ -32,7 +42,10 @@ export async function handler(event) {
 
   try {
     const { total, discount } = await priceCart(payload.lines, payload.discountCode);
-    const amountPaise = Math.round(total * 100);
+    const isCod = payload.paymentMethod === 'cod';
+    const chargeRupees = isCod ? codAdvanceRupees(total) : total;
+    const codBalance = isCod ? total - chargeRupees : 0;
+    const amountPaise = Math.round(chargeRupees * 100);
     if (!Number.isInteger(amountPaise) || amountPaise < 100) {
       return json(400, { error: 'Invalid order total' });
     }
@@ -48,6 +61,7 @@ export async function handler(event) {
       currency: 'INR',
       keyId: process.env.RAZORPAY_KEY_ID,
       discount,
+      codBalance,
     });
   } catch (err) {
     if (err.message === 'DISCOUNT_INVALID') return json(400, { error: 'Discount code invalid or not applicable' });
