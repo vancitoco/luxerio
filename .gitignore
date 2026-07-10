@@ -27,3 +27,5 @@ scrape/output/
 # Local Netlify folder
 .netlify
 deno.lock
+netlify-dev.log
+netlify-dev-err.log
