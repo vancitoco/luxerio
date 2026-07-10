@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { MagnifyingGlass, ShoppingBag, User, List, X, CaretDown } from '@phosphor-icons/react';
 import { useCart } from '../context/CartContext.jsx';
@@ -43,21 +43,40 @@ export default function Nav() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
+  const headerRef = useRef(null);
+  // The header is sticky, not fixed — before the page scrolls past the
+  // AnnouncementBar above it, the header sits lower than the viewport top,
+  // so the mobile drawer can't assume a hardcoded offset. Track the header's
+  // actual bottom edge instead, so the drawer never renders under it.
+  const [drawerTop, setDrawerTop] = useState(64);
+
+  useEffect(() => {
+    const updateDrawerTop = () => {
+      if (headerRef.current) setDrawerTop(headerRef.current.getBoundingClientRect().bottom);
+    };
+    updateDrawerTop();
+    window.addEventListener('scroll', updateDrawerTop, { passive: true });
+    window.addEventListener('resize', updateDrawerTop);
+    return () => {
+      window.removeEventListener('scroll', updateDrawerTop);
+      window.removeEventListener('resize', updateDrawerTop);
+    };
+  }, []);
 
   const close = () => setMenuOpen(false);
 
   return (
     <>
-      <header className="sticky top-0 z-50 border-b border-hairline bg-base/90 backdrop-blur">
+      <header ref={headerRef} className="sticky top-0 z-50 border-b border-hairline bg-base/90 backdrop-blur">
         <nav
           className="mx-auto flex h-16 max-w-[1280px] items-center justify-between px-6 lg:px-16"
           role="navigation"
           aria-label="Main navigation"
         >
           {/* Brand. */}
-          <Link to="/" onClick={close} className="flex items-center gap-3">
-            <img src="/brand/vancito-logo.png" alt="" className="h-9 w-9 object-contain" aria-hidden="true" />
-            <span className="font-display text-xl font-bold uppercase tracking-[0.08em] text-primary">
+          <Link to="/" onClick={close} className="flex items-center gap-2 md:gap-3">
+            <img src="/brand/vancito-logo.png" alt="" className="h-7 w-7 object-contain md:h-9 md:w-9" aria-hidden="true" />
+            <span className="font-display text-base font-bold uppercase tracking-[0.08em] text-primary md:text-xl">
               Vancito.co
             </span>
           </Link>
@@ -150,7 +169,12 @@ export default function Nav() {
               </button>
             )}
 
-            <ThemeToggle />
+            {/* Hidden on mobile — the header row is too tight at phone widths
+                to fit brand + 4 action icons, so this lives in the drawer
+                below instead. */}
+            <div className="hidden md:block">
+              <ThemeToggle />
+            </div>
 
             {/* Hamburger — mobile only. */}
             <button
@@ -188,7 +212,8 @@ export default function Nav() {
         role="dialog"
         aria-modal="true"
         aria-label="Navigation menu"
-        className={`fixed inset-x-0 top-16 z-40 border-b border-hairline bg-base transition-transform duration-300 ease-in-out md:hidden ${
+        style={{ top: drawerTop }}
+        className={`fixed inset-x-0 z-40 border-b border-hairline bg-base transition-transform duration-300 ease-in-out md:hidden ${
           menuOpen ? 'translate-y-0' : '-translate-y-[120%]'
         }`}
       >
@@ -230,6 +255,12 @@ export default function Nav() {
                 Sign In
               </button>
             )}
+          </div>
+          <div className="flex items-center justify-between border-t border-hairline pt-4 mt-4">
+            <span className="font-display text-xs font-semibold uppercase tracking-widest text-secondary">
+              Theme
+            </span>
+            <ThemeToggle />
           </div>
         </nav>
       </div>
