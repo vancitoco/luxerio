@@ -152,6 +152,7 @@ export default function Checkout() {
     if (!session) return;
     setPaying(true);
     setPayError(null);
+    setServerAmounts(null);
     try {
       const checkoutPayload = {
         lines: session.lines.map((l) => ({ variantId: l.variantId, quantity: l.quantity })),
@@ -317,7 +318,7 @@ export default function Checkout() {
             <input
               type="text"
               value={discountCode}
-              onChange={(e) => setDiscountCode(e.target.value)}
+              onChange={(e) => { setDiscountCode(e.target.value); setServerAmounts(null); }}
               placeholder="Enter code (optional)"
               className="border border-hairline bg-base px-4 py-2.5 font-display text-[11px] uppercase tracking-widest text-primary placeholder:text-secondary focus:border-acid focus:outline-none"
             />
