@@ -162,7 +162,7 @@ export async function findOrderByRzpId(razorpayOrderId) {
 // itemFixedDiscountCode.code/amountSet, transaction kind/status enums, IN/INR
 // enum values, PARTIALLY_PAID financialStatus) matches OrderCreateOrderInput and
 // its nested input types exactly.
-export async function createPaidOrder({ payload, razorpayOrderId, razorpayPaymentId, totalRupees, chargedRupees, discount, codBalance = 0 }) {
+export async function createPaidOrder({ payload, razorpayOrderId, razorpayPaymentId, chargedRupees, discount, codBalance = 0 }) {
   const input = {
     lineItems: payload.lines.map((l) => ({ variantId: l.variantId, quantity: l.quantity })),
     email: payload.email,
