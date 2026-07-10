@@ -1,5 +1,5 @@
 import { validatePayload } from './lib/payload.js';
-import { verifyPaymentSignature } from './lib/razorpay.js';
+import { verifyPaymentSignature, fetchRazorpayOrder } from './lib/razorpay.js';
 import { findOrderByRzpId, createPaidOrder, priceCart } from './lib/shopify.js';
 
 const json = (status, body) => ({
@@ -33,14 +33,21 @@ export async function handler(event) {
 
     // Re-price server-side; the charged amount and order total must agree.
     const { total, discount } = await priceCart(payload.lines, payload.discountCode);
+    // The advance actually charged — never recomputed from the tier here.
+    // See design doc: this is what keeps the recorded balance immune to
+    // price/discount drift between the charge and this confirmation.
+    const rzpOrder = await fetchRazorpayOrder(razorpay_order_id);
+    const chargedRupees = rzpOrder.amount / 100;
+    const codBalance = payload.paymentMethod === 'cod' ? Math.max(0, total - chargedRupees) : 0;
     const order = await createPaidOrder({
       payload,
       razorpayOrderId: razorpay_order_id,
       razorpayPaymentId: razorpay_payment_id,
-      totalRupees: total,
+      chargedRupees,
       discount,
+      codBalance,
     });
-    return json(200, order);
+    return json(200, { ...order, codBalance });
   } catch (err) {
     console.error('[confirm-order]', razorpay_order_id, err);
     // Payment is real (signature verified) — client shows "payment received,
