@@ -191,7 +191,7 @@ Expected: the enum list includes `PARTIALLY_PAID`. If it doesn't, stop and re-ch
 Replace the function (lines 135–178) with:
 
 ```js
-export async function createPaidOrder({ payload, razorpayOrderId, razorpayPaymentId, totalRupees, chargedRupees, discount, codBalance = 0 }) {
+export async function createPaidOrder({ payload, razorpayOrderId, razorpayPaymentId, chargedRupees, discount, codBalance = 0 }) {
   const input = {
     lineItems: payload.lines.map((l) => ({ variantId: l.variantId, quantity: l.quantity })),
     email: payload.email,
@@ -244,7 +244,7 @@ export async function createPaidOrder({ payload, razorpayOrderId, razorpayPaymen
 }
 ```
 
-Note: `totalRupees` is kept as a parameter even though this function body no longer references it directly, because Shopify computes the order's own total from `lineItems` + `discountCode`, not from a passed-in total — it was already unused for that purpose before this change (verify by checking the diff introduces no *new* unused param; if `totalRupees` truly isn't read anywhere in the current function, drop it from the signature instead of carrying dead code forward).
+Note: `totalRupees` is dropped from the signature entirely — the original function used it for the transaction amount, but that's now `chargedRupees`, so keeping `totalRupees` around would be a newly-dead parameter. (Caught during Task 2's code review, corrected in commit `7dd3ee5`.) Callers do not need to pass it.
 
 - [ ] **Step 3: Commit**
 
@@ -375,7 +375,6 @@ Then replace the `try` block:
       payload,
       razorpayOrderId: razorpay_order_id,
       razorpayPaymentId: razorpay_payment_id,
-      totalRupees: total,
       chargedRupees,
       discount,
       codBalance,
@@ -438,7 +437,7 @@ Replace the `try` block with:
     const codBalance = payload.paymentMethod === 'cod' ? Math.max(0, total - chargedRupees) : 0;
     const order = await createPaidOrder({
       payload, razorpayOrderId: rzpOrderId, razorpayPaymentId: payment.id,
-      totalRupees: total, chargedRupees, discount, codBalance,
+      chargedRupees, discount, codBalance,
     });
     return json(200, { ok: true, order: order.orderNumber });
   } catch (err) {
